@@ -8,19 +8,27 @@ import org.gradle.kotlin.dsl.get
 
 class JitpackPlugin : Plugin<Project> {
     override fun apply(project: Project) {
+
+        val publicationContainer = project.container(Publication::class.java)
+        val extension = project.extensions.create(
+            "Jitpack",
+            MyPluginExtension::class.java, publicationContainer
+        )
         project.afterEvaluate {
+            val info = extension.myPublication.getByName("release")
+            println(info)
             extensions.findByType(org.gradle.api.publish.PublishingExtension::class.java)
                 ?.apply {
                     publications {
-                        create<MavenPublication>("release"){
+                        create<MavenPublication>("release") {
                             from(components["release"])
-                            groupId = "com.github.your github name"
-                            artifactId = "your Repository name"
-                            version = "Same As Tag"
+                            groupId = info.githubName
+                            artifactId = info.repositoryName
+                            version = info.version
 
                             pom {
-                                name.set("name")
-                                description.set("description")
+                                name.set(info.name)
+                                description.set(info.description)
                             }
                         }
                     }
