@@ -9,7 +9,10 @@ import java.io.File
 
 class JitpackPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        val extension = project.extensions.create<MyPluginExtension>("Jitpack", project.container(Publication::class.java))
+        val extension = project.extensions.create<MyPluginExtension>(
+            "Jitpack",
+            project.container(Publication::class.java)
+        )
 
         project.afterEvaluate {
             configureMavenPublication(project, extension)
@@ -18,22 +21,27 @@ class JitpackPlugin : Plugin<Project> {
     }
 
     private fun configureMavenPublication(project: Project, extension: MyPluginExtension) {
-        extension.myPublication.getByName("release").let { info ->
-            project.extensions.findByType(org.gradle.api.publish.PublishingExtension::class.java)?.apply {
-                publications {
-                    create<MavenPublication>("release") {
-                        from(project.components["release"])
-                        groupId = info.githubName
-                        artifactId = info.repositoryName
-                        version = info.version
+        try {
+            extension.myPublication.getByName("release").let { info ->
+                project.extensions.findByType(org.gradle.api.publish.PublishingExtension::class.java)
+                    ?.apply {
+                        publications {
+                            create<MavenPublication>("release") {
+                                from(project.components["release"])
+                                groupId = info.githubName
+                                artifactId = info.repositoryName
+                                version = info.version
 
-                        pom {
-                            name.set(info.name)
-                            description.set(info.description)
+                                pom {
+                                    name.set(info.name)
+                                    description.set(info.description)
+                                }
+                            }
                         }
                     }
-                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
